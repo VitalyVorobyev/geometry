@@ -1,0 +1,47 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y doxygen graphviz libeigen3-dev cmake
+        
+    - name: Generate documentation
+      run: |
+        # Create a simple Doxyfile
+        cat > Doxyfile << EOF
+        PROJECT_NAME = "Geometry Library"
+        INPUT = include/ src/
+        OUTPUT_DIRECTORY = docs
+        GENERATE_HTML = YES
+        GENERATE_LATEX = NO
+        RECURSIVE = YES
+        EXTRACT_ALL = YES
+        EXTRACT_STATIC = YES
+        EXTRACT_PRIVATE = NO
+        SOURCE_BROWSER = YES
+        INLINE_SOURCES = NO
+        GENERATE_TREEVIEW = YES
+        USE_MDFILE_AS_MAINPAGE = README.md
+        EOF
+        doxygen Doxyfile
+        
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/html
