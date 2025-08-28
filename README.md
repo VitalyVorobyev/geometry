@@ -1,22 +1,24 @@
 # Geometry Library
 
-A modular C++20 computational geometry library.
+A modular C++20 computational geometry library with comprehensive testing.
 
 ## Features
 
-- **Modular Design**: Separate targets for core, primitives, and algorithms
-- **Modern C++20**: Uses latest language features and best practices
+- **Modular CMake Architecture**: Dedicated CMake files for each module
+- **Modern C++20**: Uses latest language features and best practices  
 - **Eigen Integration**: Built on the robust Eigen linear algebra library
-- **Comprehensive Testing**: Unit tests for all modules with CI/CD
+- **Google Test Framework**: Professional testing with comprehensive coverage
 - **Cross-Platform**: Supports Linux, Windows, and macOS
+- **Continuous Integration**: Automated testing, static analysis, and code coverage
 
 ## What's Included
 
 ### Core Module (`geom_core`)
 - Configurable scalar types (float/double precision)
 - Eigen integration and type aliases
+- Project-wide configuration header
 
-### Primitives Module (`geom_primitives`)
+### Primitives Module (`geom_primitives`) 
 - **Ray3d**: 3D ray with origin and direction
 - **Triangle3d**: 3D triangle with utility methods
 
@@ -26,6 +28,13 @@ A modular C++20 computational geometry library.
 - **Intersection Testing**: Fast boolean intersection checks
 
 ## Quick Start
+
+### Prerequisites
+
+- CMake 3.22 or higher
+- C++20 compatible compiler
+- Eigen3 library (auto-downloaded by CMake)
+- Google Test (auto-downloaded by CMake)
 
 ### Installation
 
@@ -40,7 +49,9 @@ cmake --build .
 ### Usage
 
 ```cpp
-#include <geom.hpp>
+#include "geom/primitives/ray.hpp"
+#include "geom/primitives/triangle.hpp"
+#include "geom/algorithms/intersect.hpp"
 
 using namespace geom;
 
@@ -69,32 +80,72 @@ if (hit.hit) {
 
 ## Testing
 
+The project uses Google Test framework for comprehensive unit testing.
+
 ```bash
-# Run all tests
+# Build with tests enabled
+cmake .. -DGEOM_BUILD_TESTS=ON
+cmake --build .
+
+# Run all tests  
 ctest --output-on-failure
 
-# Run specific test modules
-ctest -R primitives_tests
-ctest -R intersect_tests
+# Run tests with verbose output
+ctest --verbose
+
+# Run specific test suites
+./tests/geometry_gtests --gtest_filter="RayTest.*"
+./tests/geometry_gtests --gtest_filter="TriangleTest.*"  
+./tests/geometry_gtests --gtest_filter="IntersectionTest.*"
 ```
 
 ## Project Structure
 
 ```
 geometry/
-├── include/geom/          # Public API headers
-│   ├── geom.hpp          # Main convenience header
-│   ├── core/             # Core configuration
-│   ├── primitives/       # Geometric primitives
-│   └── algorithms/       # Geometric algorithms
-├── src/                  # Implementation files
-│   ├── core/
-│   ├── primitives/
-│   └── algorithms/
-├── tests/                # Comprehensive test suite
-├── .github/workflows/    # CI/CD automation
-└── cmake/               # CMake configuration
+├── CMakeLists.txt        # Main project configuration
+├── include/geom/         # Public API headers  
+│   ├── core/            # Core configuration
+│   │   └── config.hpp   # Scalar types and config
+│   ├── primitives/      # Geometric primitives
+│   │   ├── ray.hpp     # Ray3d definition
+│   │   └── triangle.hpp # Triangle3d definition
+│   └── algorithms/      # Geometric algorithms
+│       └── intersect.hpp # Intersection algorithms
+├── src/                 # Implementation files
+│   ├── core/           
+│   │   └── CMakeLists.txt # Core module config
+│   ├── primitives/      
+│   │   ├── CMakeLists.txt # Primitives module config
+│   │   ├── ray.cpp     # Ray implementations
+│   │   └── triangle.cpp # Triangle implementations
+│   └── algorithms/     
+│       ├── CMakeLists.txt # Algorithms module config
+│       └── intersect.cpp  # Intersection implementations
+├── tests/               # Google Test suite
+│   ├── CMakeLists.txt  # Test configuration
+│   ├── test_primitives_gtest.cpp # Primitives tests
+│   └── test_intersect_gtest.cpp  # Intersection tests
+├── .github/workflows/   # CI/CD automation
+├── cmake/              # CMake configuration
+└── docs/               # Documentation
 ```
+
+## CMake Architecture
+
+The project uses a modular CMake structure:
+
+- **Root CMakeLists.txt**: Main project coordination and global settings
+- **src/*/CMakeLists.txt**: Dedicated module configurations
+- **tests/CMakeLists.txt**: Google Test integration with CTest
+
+### Available Targets
+
+- `geom_core`: Interface library with Eigen and configuration
+- `geom_primitives`: Static library with Ray3d and Triangle3d  
+- `geom_algorithms`: Static library with intersection algorithms
+- `geom`: Main library target combining all modules
+- `geometry_gtests`: Google Test executable
 
 ## Contributing
 

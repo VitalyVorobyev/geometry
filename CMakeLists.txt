@@ -6,19 +6,51 @@ option(GEOM_USE_DOUBLE "Use double as default scalar" ON)
 option(GEOM_BUILD_TESTS "Build unit tests" ON)
 option(GEOM_BUILD_EXAMPLES "Build example programs" OFF)
 
-# Global compile features
+# Global compile features and standards
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find dependencies
 find_package(Eigen3 3.3 REQUIRED)
 
+# Find GTest for testing
+if(GEOM_BUILD_TESTS)
+    find_package(GTest QUIET)
+    if(NOT GTest_FOUND)
+        # If GTest is not found, fetch it
+        include(FetchContent)
+        FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/03597a01ee50ed33e9fd7188fa9e0a9f8ba9b194.zip
+        )
+        FetchContent_MakeAvailable(googletest)
+    endif()
+    enable_testing()
+endif()
+
+# Set project-wide include directory
+# Include directory - point to include folder for geom/* style includes
+set(GEOM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# Global compiler definitions
+if(GEOM_USE_DOUBLE)
+    add_compile_definitions(GEOM_SCALAR_DOUBLE=1)
+endif()
+
+# Global compiler warnings
+if(MSVC)
+    add_compile_options(/permissive- /Zc:__cplusplus /W4 /WX-)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic -Wshadow -Wconversion)
+endif()
+
 # Add subdirectories with modules
-add_subdirectory(src)
+add_subdirectory(src/core)
+add_subdirectory(src/primitives)
+add_subdirectory(src/algorithms)
 
 # Tests
 if(GEOM_BUILD_TESTS)
-    enable_testing()
     add_subdirectory(tests)
 endif()
 
@@ -26,6 +58,15 @@ endif()
 if(GEOM_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
+
+# Main geometry library (combines all modules) - defined after all modules
+add_library(geom INTERFACE)
+target_link_libraries(geom INTERFACE 
+    geom_core 
+    geom_primitives 
+    geom_algorithms
+)
+add_library(geometry::geom ALIAS geom)
 
 # Packaging
 include(GNUInstallDirs)
@@ -40,7 +81,7 @@ install(TARGETS geom geom_core geom_primitives geom_algorithms
 )
 
 # Install headers
-install(DIRECTORY include/geom 
+install(DIRECTORY include/geom
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING PATTERN "*.hpp"
 )

@@ -1,26 +1,22 @@
-# Individual test executables for modular testing
-add_executable(test_intersect_only)
-target_sources(test_intersect_only PRIVATE
-    test_intersect.cpp
-    test_intersect_main.cpp
-)
-target_link_libraries(test_intersect_only PRIVATE geom)
-add_test(NAME intersect_tests COMMAND test_intersect_only)
+# Google Test based unit tests
+add_executable(geometry_gtests)
 
-add_executable(test_primitives_only)  
-target_sources(test_primitives_only PRIVATE
-    test_primitives.cpp
-    test_primitives_main.cpp
+# Test sources
+target_sources(geometry_gtests PRIVATE
+    test_primitives_gtest.cpp
+    test_intersect_gtest.cpp
 )
-target_link_libraries(test_primitives_only PRIVATE geom)
-add_test(NAME primitives_tests COMMAND test_primitives_only)
 
-# Main comprehensive test executable
-add_executable(geometry_tests)
-target_sources(geometry_tests PRIVATE
-    main_test_runner.cpp
-    test_primitives.cpp
-    test_intersect.cpp
+# Link with geometry library and GTest
+target_link_libraries(geometry_gtests PRIVATE 
+    geom 
+    gtest 
+    gtest_main
 )
-target_link_libraries(geometry_tests PRIVATE geom)
-add_test(NAME geometry_all_tests COMMAND geometry_tests)
+
+# Include project root for proper includes
+target_include_directories(geometry_gtests PRIVATE ${GEOM_INCLUDE_DIR})
+
+# Register with CTest
+include(GoogleTest)
+gtest_discover_tests(geometry_gtests)

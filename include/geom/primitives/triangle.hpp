@@ -6,7 +6,7 @@
 // eigen
 #include <Eigen/Core>
 
-#include "../core/config.hpp"
+#include "geom/core/config.hpp"
 
 namespace geom {
 
