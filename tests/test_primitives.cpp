@@ -48,6 +48,12 @@ void test_triangle_functionality() {
     [[maybe_unused]] Scalar area = tri.area();
     assert(std::abs(area - 0.5) < 1e-6);
     
+    // Test normal calculation
+    [[maybe_unused]] auto normal = tri.normal();
+    assert(std::abs(normal.x() - 0.0) < 1e-6);
+    assert(std::abs(normal.y() - 0.0) < 1e-6);
+    assert(std::abs(normal.z() - 1.0) < 1e-6);
+    
     // Test centroid
     [[maybe_unused]] auto centroid = tri.centroid();
     assert(std::abs(centroid.x() - 1.0/3.0) < 1e-6);

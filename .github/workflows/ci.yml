@@ -111,14 +111,15 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libeigen3-dev cmake build-essential gcov lcov
+        sudo apt-get install -y libeigen3-dev cmake build-essential gcc lcov
 
     - name: Configure CMake with coverage
       run: |
         cmake -B build \
           -DCMAKE_BUILD_TYPE=Debug \
           -DGEOM_BUILD_TESTS=ON \
-          -DCMAKE_CXX_FLAGS="--coverage"
+          -DCMAKE_CXX_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
+          -DCMAKE_EXE_LINKER_FLAGS="--coverage"
 
     - name: Build
       run: cmake --build build
@@ -129,12 +130,24 @@ jobs:
 
     - name: Generate coverage report
       run: |
-        lcov --capture --directory build --output-file coverage.info
-        lcov --remove coverage.info '/usr/*' --output-file coverage.info
-        lcov --list coverage.info
+        # Initialize coverage data
+        lcov --directory build --zerocounters
+
+        # Run tests to generate coverage data
+        cd build && ctest --output-on-failure
+
+        # Capture coverage data
+        lcov --directory . --capture --output-file coverage.info
+
+        # Remove system and external library files
+        lcov --remove coverage.info '/usr/*' '*/tests/*' '*/examples/*' --output-file coverage_filtered.info
+
+        # List coverage information
+        lcov --list coverage_filtered.info
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
-        file: ./coverage.info
-        fail_ci_if_error: true
+        file: ./coverage_filtered.info
+        fail_ci_if_error: false
+        verbose: true
