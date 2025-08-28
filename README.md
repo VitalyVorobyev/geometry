@@ -1,6 +1,6 @@
 # Geometry Library
 
-A modular C++20 computational geometry library with ray-triangle intersection algorithms.
+A modular C++20 computational geometry library.
 
 ## Features
 
@@ -16,7 +16,7 @@ A modular C++20 computational geometry library with ray-triangle intersection al
 - Configurable scalar types (float/double precision)
 - Eigen integration and type aliases
 
-### Primitives Module (`geom_primitives`) 
+### Primitives Module (`geom_primitives`)
 - **Ray3d**: 3D ray with origin and direction
 - **Triangle3d**: 3D triangle with utility methods
 
