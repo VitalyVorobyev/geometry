@@ -47,6 +47,8 @@ bool ray_intersects_triangle(const Ray3d& r, const Triangle3d& tri, Scalar epsil
     return intersect_moller_trumbore(r, tri, epsilon).hit;
 }
 
+// Calculate distance from ray origin to triangle intersection point
+// Returns infinity if no intersection occurs
 Scalar distance_ray_to_triangle(const Ray3d& r, const Triangle3d& tri) {
     auto hit = intersect(r, tri);
     if (hit.hit) {

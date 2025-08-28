@@ -13,29 +13,37 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         build-type: [Debug, Release]
         scalar-type: [float, double]
-    
+        exclude:
+          # Reduce matrix size by excluding some combinations
+          - os: windows-latest
+            build-type: Debug
+            scalar-type: float
+          - os: macos-latest
+            build-type: Debug
+            scalar-type: float
+
     runs-on: ${{ matrix.os }}
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Install dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
         sudo apt-get install -y libeigen3-dev cmake build-essential
-        
+
     - name: Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        brew install eigen cmake
-        
+        brew install eigen
+
     - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         vcpkg install eigen3:x64-windows
-        
+
     - name: Configure CMake (Ubuntu/macOS)
       if: matrix.os != 'windows-latest'
       run: |
@@ -43,7 +51,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
           -DGEOM_USE_DOUBLE=${{ matrix.scalar-type == 'double' && 'ON' || 'OFF' }} \
           -DGEOM_BUILD_TESTS=ON
-          
+
     - name: Configure CMake (Windows)
       if: matrix.os == 'windows-latest'
       run: |
@@ -52,77 +60,79 @@ jobs:
           -DGEOM_USE_DOUBLE=${{ matrix.scalar-type == 'double' && 'ON' || 'OFF' }} `
           -DGEOM_BUILD_TESTS=ON `
           -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
-          
+
     - name: Build
       run: cmake --build build --config ${{ matrix.build-type }}
-      
+
     - name: Run tests
       working-directory: build
       run: ctest --output-on-failure --build-config ${{ matrix.build-type }}
 
   static-analysis:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y libeigen3-dev cmake build-essential clang-tidy cppcheck
-        
+
     - name: Configure CMake
       run: |
         cmake -B build \
           -DCMAKE_BUILD_TYPE=Debug \
           -DGEOM_BUILD_TESTS=ON \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-          
+
     - name: Build
       run: cmake --build build
-      
+
     - name: Run clang-tidy
       run: |
         find src tests -name "*.cpp" -exec clang-tidy {} -p build \;
-        
+
     - name: Run cppcheck
       run: |
-        cppcheck --enable=all --error-exitcode=1 --suppress=missingInclude \
-          --inline-suppr --std=c++20 src/ tests/
+        cppcheck --enable=all --error-exitcode=1 \
+          --suppressions-list=.cppcheck-suppressions \
+          --inline-suppr --std=c++20 \
+          -I include/ src/ tests/
 
   coverage:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y libeigen3-dev cmake build-essential gcov lcov
-        
+
     - name: Configure CMake with coverage
       run: |
         cmake -B build \
           -DCMAKE_BUILD_TYPE=Debug \
           -DGEOM_BUILD_TESTS=ON \
           -DCMAKE_CXX_FLAGS="--coverage"
-          
+
     - name: Build
       run: cmake --build build
-      
+
     - name: Run tests
       working-directory: build
       run: ctest --output-on-failure
-      
+
     - name: Generate coverage report
       run: |
         lcov --capture --directory build --output-file coverage.info
         lcov --remove coverage.info '/usr/*' --output-file coverage.info
         lcov --list coverage.info
-        
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:

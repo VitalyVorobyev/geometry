@@ -1,0 +1,10 @@
+# Cppcheck suppressions for geometry library
+
+# System includes - these are not actual issues
+missingIncludeSystem
+
+# Function may be unused in this translation unit but is part of public API
+unusedFunction:src/algorithms/intersect.cpp:50
+
+# Standard library includes are expected
+missingInclude

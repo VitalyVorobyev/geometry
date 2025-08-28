@@ -36,12 +36,12 @@ bool Triangle3d::contains_point_barycentric(Scalar u, Scalar v, Scalar tolerance
 Triangle3d Triangle3d::create_equilateral(const Vec3& center, Scalar side_length) {
     Scalar height = side_length * std::sqrt(Scalar(3)) / Scalar(2);
     Scalar half_side = side_length / Scalar(2);
-    
+
     Triangle3d tri;
     tri.a = center + Vec3(-half_side, -height / Scalar(3), Scalar(0));
     tri.b = center + Vec3(half_side, -height / Scalar(3), Scalar(0));
     tri.c = center + Vec3(Scalar(0), Scalar(2) * height / Scalar(3), Scalar(0));
-    
+
     return tri;
 }
 
