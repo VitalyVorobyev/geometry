@@ -39,18 +39,21 @@ jobs:
     - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        # Set vcpkg location
-        echo "VCPKG_ROOT=$env:GITHUB_WORKSPACE\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
+        # Set vcpkg location directly in current shell
+        $vcpkgPath = Join-Path $env:GITHUB_WORKSPACE "vcpkg"
+
+        # Also set for future steps
+        echo "VCPKG_ROOT=$vcpkgPath" | Out-File -FilePath $env:GITHUB_ENV -Append
 
         # Clone vcpkg if not already installed
-        if (-not (Test-Path $env:VCPKG_ROOT)) {
-          git clone https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
-          cd $env:VCPKG_ROOT
-          & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
+        if (-not (Test-Path $vcpkgPath)) {
+          git clone https://github.com/microsoft/vcpkg.git $vcpkgPath
+          cd $vcpkgPath
+          .\bootstrap-vcpkg.bat -disableMetrics
         }
 
         # Install dependencies
-        & "$env:VCPKG_ROOT\vcpkg.exe" install eigen3:x64-windows gtest:x64-windows
+        & "$vcpkgPath\vcpkg.exe" install eigen3:x64-windows googletest:x64-windows
 
     - name: Configure CMake (Ubuntu/macOS)
       if: matrix.os != 'windows-latest'
