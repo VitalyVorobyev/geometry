@@ -15,16 +15,7 @@ find_package(Eigen3 3.3 REQUIRED)
 
 # Find GTest for testing
 if(GEOM_BUILD_TESTS)
-    find_package(GTest QUIET)
-    if(NOT GTest_FOUND)
-        # If GTest is not found, fetch it
-        include(FetchContent)
-        FetchContent_Declare(
-            googletest
-            URL https://github.com/google/googletest/archive/03597a01ee50ed33e9fd7188fa9e0a9f8ba9b194.zip
-        )
-        FetchContent_MakeAvailable(googletest)
-    endif()
+    find_package(GTest REQUIRED)
     enable_testing()
 endif()
 
@@ -61,9 +52,9 @@ endif()
 
 # Main geometry library (combines all modules) - defined after all modules
 add_library(geom INTERFACE)
-target_link_libraries(geom INTERFACE 
-    geom_core 
-    geom_primitives 
+target_link_libraries(geom INTERFACE
+    geom_core
+    geom_primitives
     geom_algorithms
 )
 add_library(geometry::geom ALIAS geom)

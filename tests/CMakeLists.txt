@@ -8,10 +8,10 @@ target_sources(geometry_gtests PRIVATE
 )
 
 # Link with geometry library and GTest
-target_link_libraries(geometry_gtests PRIVATE 
-    geom 
-    gtest 
-    gtest_main
+target_link_libraries(geometry_gtests PRIVATE
+    geom
+    GTest::GTest
+    GTest::Main
 )
 
 # Include project root for proper includes

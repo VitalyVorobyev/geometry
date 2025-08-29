@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include "geom/primitives/ray.hpp"
 #include "geom/primitives/triangle.hpp"
 
@@ -10,7 +11,7 @@ protected:
         ray.origin = Ray3d::Vec3(1, 2, 3);
         ray.dir = Ray3d::Vec3(0, 0, 1);
     }
-    
+
     Ray3d ray;
 };
 
@@ -30,7 +31,7 @@ TEST_F(RayTest, NormalizeDirection) {
 TEST_F(RayTest, IsDirectionNormalized) {
     ray.dir = Ray3d::Vec3(1, 0, 0);
     EXPECT_TRUE(ray.is_direction_normalized());
-    
+
     ray.dir = Ray3d::Vec3(2, 0, 0);
     EXPECT_FALSE(ray.is_direction_normalized());
 }
@@ -39,7 +40,7 @@ TEST_F(RayTest, CreateFromPoints) {
     Ray3d::Vec3 start(0, 0, 0);
     Ray3d::Vec3 end(1, 1, 1);
     auto ray_from_points = Ray3d::create_from_points(start, end);
-    
+
     EXPECT_TRUE(ray_from_points.is_direction_normalized());
     EXPECT_EQ(ray_from_points.origin, start);
 }
@@ -52,7 +53,7 @@ protected:
         tri.b = Triangle3d::Vec3(1, 0, 0);
         tri.c = Triangle3d::Vec3(0, 1, 0);
     }
-    
+
     Triangle3d tri;
 };
 

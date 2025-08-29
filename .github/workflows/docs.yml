@@ -9,16 +9,16 @@ on:
 jobs:
   build-docs:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y doxygen graphviz libeigen3-dev cmake
-        
+
     - name: Generate documentation
       run: |
         # Create a simple Doxyfile
@@ -38,7 +38,7 @@ jobs:
         USE_MDFILE_AS_MAINPAGE = README.md
         EOF
         doxygen Doxyfile
-        
+
     - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
