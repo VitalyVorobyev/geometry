@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build-docs:
     runs-on: ubuntu-latest
@@ -39,9 +44,20 @@ jobs:
         EOF
         doxygen Doxyfile
 
+  deploy-docs:
+    runs-on: ubuntu-latest
+    needs: build-docs  # Run after build-docs job
+    if: github.ref == 'refs/heads/main'  # Only deploy from main branch
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
     - name: Deploy to GitHub Pages
-      if: github.ref == 'refs/heads/main'
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/html
+      id: deployment
+      uses: actions/deploy-pages@v3
