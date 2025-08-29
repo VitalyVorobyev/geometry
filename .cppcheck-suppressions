@@ -5,7 +5,7 @@ missingIncludeSystem
 
 # Functions may be unused in this translation unit but are part of public API
 unusedFunction:src/algorithms/intersect.cpp:50
-unusedFunction:src/primitives/triangle.cpp:5
+unusedFunction:src/primitives/triangle.cpp:30
 
-# Standard library includes are expected
-missingInclude
+# Test framework functions that appear unused but are required
+unusedFunction:tests/test_intersect_gtest.cpp:8

@@ -147,11 +147,13 @@ jobs:
         # Run tests to generate coverage data
         cd build && ctest --output-on-failure
 
-        # Capture coverage data
-        lcov --directory . --capture --output-file coverage.info
+        # Capture coverage data with error handling
+        lcov --directory . --capture --output-file coverage.info \
+          --ignore-errors mismatch \
+          --rc geninfo_unexecuted_blocks=1
 
         # Remove system and external library files
-        lcov --remove coverage.info '/usr/*' '*/tests/*' '*/examples/*' --output-file coverage_filtered.info
+        lcov --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage_filtered.info
 
         # List coverage information
         lcov --list coverage_filtered.info
