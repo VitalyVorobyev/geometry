@@ -46,11 +46,11 @@ jobs:
         if (-not (Test-Path $env:VCPKG_ROOT)) {
           git clone https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
           cd $env:VCPKG_ROOT
-          .\bootstrap-vcpkg.bat -disableMetrics
+          & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
         }
 
         # Install dependencies
-        $env:VCPKG_ROOT\vcpkg install eigen3:x64-windows googletest:x64-windows
+        & "$env:VCPKG_ROOT\vcpkg.exe" install eigen3:x64-windows googletest:x64-windows
 
     - name: Configure CMake (Ubuntu/macOS)
       if: matrix.os != 'windows-latest'
