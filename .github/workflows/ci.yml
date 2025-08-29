@@ -39,7 +39,18 @@ jobs:
     - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        vcpkg install eigen3:x64-windows gtest:x64-windows
+        # Set vcpkg location
+        echo "VCPKG_ROOT=$env:GITHUB_WORKSPACE\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+        # Clone vcpkg if not already installed
+        if (-not (Test-Path $env:VCPKG_ROOT)) {
+          git clone https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
+          cd $env:VCPKG_ROOT
+          .\bootstrap-vcpkg.bat -disableMetrics
+        }
+
+        # Install dependencies
+        $env:VCPKG_ROOT\vcpkg install eigen3:x64-windows googletest:x64-windows
 
     - name: Configure CMake (Ubuntu/macOS)
       if: matrix.os != 'windows-latest'
@@ -56,7 +67,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} `
           -DGEOM_USE_DOUBLE=${{ matrix.scalar-type == 'double' && 'ON' || 'OFF' }} `
           -DGEOM_BUILD_TESTS=ON `
-          -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake"
 
     - name: Build
       run: cmake --build build --config ${{ matrix.build-type }}
