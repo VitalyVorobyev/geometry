@@ -1,0 +1,166 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        build-type: [Release]
+        scalar-type: [double]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libeigen3-dev cmake build-essential libgtest-dev
+        # Build and install GTest from source
+        cd /usr/src/gtest
+        sudo cmake CMakeLists.txt
+        sudo make
+        sudo cp lib/*.a /usr/lib
+
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install eigen googletest
+
+    - name: Install dependencies (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        # Set vcpkg location directly in current shell
+        $vcpkgPath = Join-Path $env:GITHUB_WORKSPACE "vcpkg"
+
+        # Also set for future steps
+        echo "VCPKG_ROOT=$vcpkgPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+        # Clone vcpkg if not already installed
+        if (-not (Test-Path $vcpkgPath)) {
+          git clone https://github.com/microsoft/vcpkg.git $vcpkgPath
+          cd $vcpkgPath
+          .\bootstrap-vcpkg.bat -disableMetrics
+        }
+
+        # Install dependencies
+        & "$vcpkgPath\vcpkg.exe" install eigen3:x64-windows gtest:x64-windows
+
+    - name: Configure CMake (Ubuntu/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} \
+          -DGEOM_USE_DOUBLE=${{ matrix.scalar-type == 'double' && 'ON' || 'OFF' }} \
+          -DGEOM_BUILD_TESTS=ON
+
+    - name: Configure CMake (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cmake -B build `
+          -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} `
+          -DGEOM_USE_DOUBLE=${{ matrix.scalar-type == 'double' && 'ON' || 'OFF' }} `
+          -DGEOM_BUILD_TESTS=ON `
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake"
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build-type }}
+
+    - name: Run tests
+      working-directory: build
+      run: ctest --output-on-failure --build-config ${{ matrix.build-type }}
+
+  static-analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libeigen3-dev cmake build-essential clang-tidy cppcheck libgtest-dev
+
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DGEOM_BUILD_TESTS=ON \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+    - name: Build
+      run: cmake --build build
+
+    - name: Run clang-tidy
+      run: |
+        find src tests -name "*.cpp" -exec clang-tidy {} -p build \;
+
+    - name: Run cppcheck
+      run: |
+        cppcheck --enable=all --error-exitcode=1 \
+          --suppressions-list=.cppcheck-suppressions \
+          --inline-suppr --std=c++20 \
+          -I include/ src/ tests/
+
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libeigen3-dev cmake build-essential gcc lcov libgtest-dev
+
+    - name: Configure CMake with coverage
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DGEOM_BUILD_TESTS=ON \
+          -DCMAKE_CXX_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
+          -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+
+    - name: Build
+      run: cmake --build build
+
+    - name: Run tests
+      working-directory: build
+      run: ctest --output-on-failure
+
+    - name: Generate coverage report
+      run: |
+        # Initialize coverage data
+        lcov --directory build --zerocounters
+
+        # Run tests to generate coverage data
+        cd build && ctest --output-on-failure
+
+        # Capture coverage data with error handling
+        lcov --directory . --capture --output-file coverage.info \
+          --ignore-errors mismatch \
+          --rc geninfo_unexecuted_blocks=1
+
+        # Remove system and external library files
+        lcov --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage_filtered.info
+
+        # List coverage information
+        lcov --list coverage_filtered.info
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage_filtered.info
+        fail_ci_if_error: false
+        verbose: true
