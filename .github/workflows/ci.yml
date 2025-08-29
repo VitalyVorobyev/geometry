@@ -34,7 +34,7 @@ jobs:
     - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        vcpkg install eigen3:x64-windows googletest:x64-windows
+        vcpkg install eigen3:x64-windows gtest:x64-windows
 
     - name: Configure CMake (Ubuntu/macOS)
       if: matrix.os != 'windows-latest'
