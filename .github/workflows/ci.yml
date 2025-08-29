@@ -24,7 +24,12 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install -y libeigen3-dev cmake build-essential
+        sudo apt-get install -y libeigen3-dev cmake build-essential libgtest-dev
+        # Build and install GTest from source
+        cd /usr/src/gtest
+        sudo cmake CMakeLists.txt
+        sudo make
+        sudo cp lib/*.a /usr/lib
 
     - name: Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
@@ -103,7 +108,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y libeigen3-dev cmake build-essential gcc lcov
+        sudo apt-get install -y libeigen3-dev cmake build-essential gcc lcov libgtest-dev
 
     - name: Configure CMake with coverage
       run: |
