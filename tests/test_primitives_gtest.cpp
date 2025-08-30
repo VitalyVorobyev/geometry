@@ -180,6 +180,7 @@ TEST(PredicateTest, Orientation2D) {
 }
 
 TEST(PredicateTest, Orientation3D) {
-    Vec3 a(0,0,0), b(1,0,0), c(0,1,0), d(0,0,1);
-    EXPECT_GT(orient3d(a,b,c,d), 0);
+    Vec3 a(0,0,0), b(1,0,0), c(0,1,0), d(0,0,1), e(0,0,-1);
+    EXPECT_LT(orient3d(a,b,c,d), 0);
+    EXPECT_GT(orient3d(a,b,c,e), 0);
 }

@@ -21,4 +21,3 @@ inline Scalar signed_distance(const AABB3d& box, const Vec3& p) {
 }
 
 } // namespace geom
-
