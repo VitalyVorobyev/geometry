@@ -150,12 +150,49 @@ TEST(SegmentTest, Distance) {
     EXPECT_NEAR(seg.distance(p), 1.0, 1e-6);
 }
 
+TEST(SegmentTest, Length) {
+    Segment3d seg;
+    seg.a = Vec3(0, 0, 0);
+    seg.b = Vec3(3, 4, 0);
+
+    // Length should be 5 (3-4-5 triangle)
+    EXPECT_NEAR(seg.length(), 5.0, 1e-6);
+
+    // Test with different segment
+    seg.a = Vec3(-1, -1, -1);
+    seg.b = Vec3(1, 1, 1);
+    Scalar expected = std::sqrt(12.0);  // sqrt((2)^2 + (2)^2 + (2)^2)
+    EXPECT_NEAR(seg.length(), expected, 1e-6);
+}
+
 TEST(PlaneTest, SignedDistance) {
     Plane3d plane = plane_from_point_normal(Vec3::Zero(), Vec3::UnitZ());
     Vec3 p(0,0,5);
     EXPECT_NEAR(plane.signedDistance(p), 5.0, 1e-6);
     auto proj = plane.projection(p);
     EXPECT_NEAR(proj.z(), 0.0, 1e-6);
+}
+
+TEST(PlaneTest, PlaneFromPoints) {
+    // Create a plane from three points in the XY plane (z=0)
+    Vec3 a(0, 0, 0);
+    Vec3 b(1, 0, 0);
+    Vec3 c(0, 1, 0);
+
+    Plane3d plane = plane_from_points(a, b, c);
+
+    // The normal should point in the Z direction
+    Vec3 expected_normal(0, 0, 1);
+    EXPECT_NEAR(plane.normal().dot(expected_normal), 1.0, 1e-6);
+
+    // All three points should be on the plane (distance = 0)
+    EXPECT_NEAR(std::abs(plane.signedDistance(a)), 0.0, 1e-6);
+    EXPECT_NEAR(std::abs(plane.signedDistance(b)), 0.0, 1e-6);
+    EXPECT_NEAR(std::abs(plane.signedDistance(c)), 0.0, 1e-6);
+
+    // A point above the plane should have positive distance
+    Vec3 above(0, 0, 1);
+    EXPECT_GT(plane.signedDistance(above), 0.0);
 }
 
 TEST(AABBTest, ProjectionAndDistance) {
@@ -172,6 +209,26 @@ TEST(OBBTest, Projection) {
     Vec3 p(3,0,0);
     auto proj = box.project_point(p);
     EXPECT_NEAR((proj - Vec3(1,0,0)).norm(), 0.0, 1e-6);
+}
+
+TEST(OBBTest, Contains) {
+    OBB3d box;
+    box.center = Vec3::Zero();
+    box.half_extents = Vec3(1, 1, 1);
+
+    // Point inside the box
+    EXPECT_TRUE(box.contains(Vec3(0.5, 0.5, 0.5)));
+    EXPECT_TRUE(box.contains(Vec3::Zero()));
+
+    // Point outside the box
+    EXPECT_FALSE(box.contains(Vec3(2, 0, 0)));
+    EXPECT_FALSE(box.contains(Vec3(0, 2, 0)));
+    EXPECT_FALSE(box.contains(Vec3(0, 0, 2)));
+
+    // Point on the boundary
+    EXPECT_TRUE(box.contains(Vec3(1, 0, 0)));
+    EXPECT_TRUE(box.contains(Vec3(0, 1, 0)));
+    EXPECT_TRUE(box.contains(Vec3(0, 0, 1)));
 }
 
 TEST(PredicateTest, Orientation2D) {
