@@ -79,3 +79,17 @@ TEST_F(IntersectionTest, MollerTrumboreWithCustomEpsilon) {
     EXPECT_TRUE(hit.hit);
     EXPECT_NEAR(hit.t, 1.0, 1e-6);
 }
+
+TEST(IntersectionAdversarial, SliverTriangle) {
+    Ray3d r;
+    r.origin = Ray3d::Vec3(0.0, 0.1, -1.0);
+    r.dir = Ray3d::Vec3(0.0, 0.0, 1.0);
+
+    Triangle3d tri;
+    tri.a = Triangle3d::Vec3(0.0, 0.0, 0.0);
+    tri.b = Triangle3d::Vec3(1e-9, 0.0, 0.0); // sliver edge
+    tri.c = Triangle3d::Vec3(0.0, 1.0, 0.0);
+
+    auto hit = intersect(r, tri);
+    EXPECT_TRUE(hit.hit);
+}
