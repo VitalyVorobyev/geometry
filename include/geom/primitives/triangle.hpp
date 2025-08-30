@@ -27,6 +27,9 @@ struct Triangle3d final {
     Vec3 barycentric_to_cartesian(Scalar u, Scalar v, Scalar w) const;
     Vec3 barycentric_to_cartesian(Scalar u, Scalar v) const; // w = 1 - u - v
 
+    // Convert cartesian point to barycentric coordinates (u,v,w)
+    Vec3 cartesian_to_barycentric(const Vec3& p) const;
+
     // Check if barycentric coordinates are within triangle bounds
     bool contains_point_barycentric(Scalar u, Scalar v, Scalar tolerance = Scalar(1e-6)) const;
 

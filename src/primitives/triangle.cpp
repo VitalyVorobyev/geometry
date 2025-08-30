@@ -45,4 +45,20 @@ Triangle3d Triangle3d::create_equilateral(const Vec3& center, Scalar side_length
     return tri;
 }
 
+Triangle3d::Vec3 Triangle3d::cartesian_to_barycentric(const Vec3& p) const {
+    Vec3 v0 = b - a;
+    Vec3 v1 = c - a;
+    Vec3 v2 = p - a;
+    Scalar d00 = v0.dot(v0);
+    Scalar d01 = v0.dot(v1);
+    Scalar d11 = v1.dot(v1);
+    Scalar d20 = v2.dot(v0);
+    Scalar d21 = v2.dot(v1);
+    Scalar denom = d00 * d11 - d01 * d01;
+    Scalar v = (d11 * d20 - d01 * d21) / denom;
+    Scalar w = (d00 * d21 - d01 * d20) / denom;
+    Scalar u = Scalar(1) - v - w;
+    return Vec3(u, v, w);
+}
+
 } // namespace geom
