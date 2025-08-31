@@ -6,6 +6,7 @@ target_sources(geometry_gtests PRIVATE
     test_primitives_gtest.cpp
     test_intersect_gtest.cpp
     test_segment_intersection_gtest.cpp
+    test_spatial_gtest.cpp
 )
 
 # Link with geometry library and GTest

@@ -39,6 +39,7 @@ endif()
 add_subdirectory(src/core)
 add_subdirectory(src/primitives)
 add_subdirectory(src/algorithms)
+add_subdirectory(src/spatial)
 
 # Tests
 if(GEOM_BUILD_TESTS)
@@ -56,6 +57,7 @@ target_link_libraries(geom INTERFACE
     geom_core
     geom_primitives
     geom_algorithms
+    geom_spatial
 )
 add_library(geometry::geom ALIAS geom)
 
@@ -63,7 +65,7 @@ add_library(geometry::geom ALIAS geom)
 include(GNUInstallDirs)
 
 # Install targets
-install(TARGETS geom geom_core geom_primitives geom_algorithms
+install(TARGETS geom geom_core geom_primitives geom_algorithms geom_spatial
     EXPORT geometry-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

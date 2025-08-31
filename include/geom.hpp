@@ -17,6 +17,11 @@
 // Algorithms
 #include "geom/algorithms/intersect.hpp"
 
+// Spatial structures
+#include "geom/spatial/kdtree.hpp"
+#include "geom/spatial/octree.hpp"
+#include "geom/spatial/bvh.hpp"
+
 /**
  * @file geom.hpp
  * @brief Main header for the geometry library
