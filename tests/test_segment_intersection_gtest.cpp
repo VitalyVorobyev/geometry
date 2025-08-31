@@ -28,4 +28,3 @@ TEST(SegmentSegment, NearlyParallelIntersection) {
     EXPECT_NEAR(hit.point.x(), 0.5, 1e-6);
     EXPECT_NEAR(hit.point.y(), 0.5e-8, 1e-10);
 }
-
