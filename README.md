@@ -99,6 +99,17 @@ ctest --verbose
 ./tests/geometry_gtests --gtest_filter="IntersectionTest.*"
 ```
 
+## Documentation
+
+Documentation is generated with [Doxygen](https://www.doxygen.nl/) and automatically deployed to GitHub Pages via [GitHub Actions](.github/workflows/docs.yml).
+
+To enable automatic deployments:
+
+1. In the repository's **Settings** > **Pages**, set **Build and deployment → Source** to **GitHub Actions**.
+2. Ensure the `github-pages` environment exists (GitHub creates it automatically after the first successful deploy).
+
+The `docs` workflow publishes the site on every push to `main`.
+
 ## Project Structure
 
 ```
