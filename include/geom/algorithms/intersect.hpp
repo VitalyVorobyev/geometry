@@ -2,9 +2,11 @@
 
 // std
 #include <limits>
+#include <cmath>
 
 #include "geom/primitives/ray.hpp"
 #include "geom/primitives/triangle.hpp"
+#include "geom/algorithms/results.hpp"
 #include "geom/primitives/point.hpp"  // Vec2, Vec3
 
 namespace geom {
@@ -47,22 +49,11 @@ inline RayTriHit intersect(const Ray3d& r, const Triangle3d& tri) {
 }
 
 /**
- * Result of line/segment intersection
- */
-struct LineIntersection final {
-    bool hit{false};          // Whether there is an intersection
-    bool collinear{false};    // Whether lines are collinear
-    Vec2 point;              // Intersection point (valid when hit is true)
-    Scalar t_a{Scalar(0)};    // Parameter along first line/segment
-    Scalar t_b{Scalar(0)};    // Parameter along second line/segment
-};
-
-/**
  * Compute intersection between two infinite lines.
  * Lines are defined by start and end points, but extend infinitely.
  * Returns hit for all valid intersections, including collinear lines.
  */
-inline LineIntersection intersect_lines(const Vec2& a0, const Vec2& a1,
+inline IntersectResult<2> intersect_lines(const Vec2& a0, const Vec2& a1,
                                         const Vec2& b0, const Vec2& b1,
                                         Scalar epsilon = Scalar(1e-9)) {
     const Vec2 dir_a = a1 - a0;
@@ -72,13 +63,18 @@ inline LineIntersection intersect_lines(const Vec2& a0, const Vec2& a1,
 
     // Check if lines are parallel (or nearly parallel)
     if (std::abs(cross) < epsilon) {
-        // Lines are collinear - check if they overlap
+        // Check if lines are collinear by seeing if a0 lies on line B
         const Vec2 r = a0 - b0;
-        const Scalar dot1 = r.dot(dir_b);
-        // const Scalar dot2 = dir_a.dot(dir_b);
+        const Scalar cross_r = r[0] * dir_b[1] - r[1] * dir_b[0];
 
-        // If lines are collinear, return a valid hit with collinear flag
-        return {true, true, a0, Scalar(0), dot1 / dir_b.squaredNorm()};
+        if (std::abs(cross_r) < epsilon) {
+            // Lines are collinear - return hit with collinear flag
+            const Scalar dot1 = r.dot(dir_b);
+            return {true, true, Scalar(0), dot1 / dir_b.squaredNorm(), a0};
+        } else {
+            // Lines are parallel but not collinear - no intersection
+            return {false, false, Scalar(0), Scalar(0), {}};
+        }
     }
 
     // Lines intersect at a single point
@@ -86,7 +82,7 @@ inline LineIntersection intersect_lines(const Vec2& a0, const Vec2& a1,
     const Scalar t_a = (r[0] * dir_b[1] - r[1] * dir_b[0]) / cross;
     const Scalar t_b = (r[0] * dir_a[1] - r[1] * dir_a[0]) / cross;
 
-    return {true, false, a0 + t_a * dir_a, t_a, t_b};
+    return {true, false, t_a, t_b, a0 + t_a * dir_a};
 }
 
 /**
@@ -94,10 +90,10 @@ inline LineIntersection intersect_lines(const Vec2& a0, const Vec2& a1,
  * Segments are defined by their endpoints.
  * Returns hit when segments intersect, including at endpoints.
  */
-inline LineIntersection intersect_segments(const Vec2& a0, const Vec2& a1,
+inline IntersectResult<2> intersect_segments(const Vec2& a0, const Vec2& a1,
                                            const Vec2& b0, const Vec2& b1,
                                            Scalar epsilon = Scalar(1e-9)) {
-    LineIntersection result = intersect_lines(a0, a1, b0, b1, epsilon);
+    IntersectResult<2> result = intersect_lines(a0, a1, b0, b1, epsilon);
 
     // No intersection at all
     if (!result.hit) {
@@ -113,9 +109,9 @@ inline LineIntersection intersect_segments(const Vec2& a0, const Vec2& a1,
             // Segment A is essentially a point - check if it's on segment B
             const Scalar t = (a0 - b0).dot(b1 - b0) / (b1 - b0).squaredNorm();
             if (t >= 0 - epsilon && t <= 1 + epsilon) {
-                return {true, true, a0, 0, t};
+                return {true, true, 0, t, a0};
             }
-            return {false, true, Vec2(), 0, 0};
+            return {false, true, 0, 0, {}};
         }
 
         // Parameterize both segments relative to segment A
@@ -133,20 +129,20 @@ inline LineIntersection intersect_segments(const Vec2& a0, const Vec2& a1,
         if (t_min <= 1 + epsilon && t_max >= 0 - epsilon) {
             // Segments overlap - return one of the intersection points
             const Scalar t = std::max(Scalar(0), std::min(Scalar(1), t_min));
-            return {true, true, a0 + t * dir, t, (t == t_b0) ? Scalar(0) : Scalar(1)};
+            return {true, true, t, (t == t_b0) ? Scalar(0) : Scalar(1), a0 + t * dir};
         }
 
-        return {false, true, Vec2(), 0, 0};
+        return {false, true, 0, 0, {}};
     }
 
     // Regular intersection - check if it's within both segments
-    if (result.t_a >= 0 - epsilon && result.t_a <= 1 + epsilon &&
-        result.t_b >= 0 - epsilon && result.t_b <= 1 + epsilon) {
+    if (result.paramA >= 0 - epsilon && result.paramA <= 1 + epsilon &&
+        result.paramB >= 0 - epsilon && result.paramB <= 1 + epsilon) {
         return result;
     }
 
     // Intersection point outside segments
-    return {false, false, Vec2(), result.t_a, result.t_b};
+    return {false, false, result.paramA, result.paramB, {}};
 }
 
 // Additional intersection functions implemented in intersect.cpp
