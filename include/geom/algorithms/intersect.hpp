@@ -63,13 +63,18 @@ inline IntersectResult<2> intersect_lines(const Vec2& a0, const Vec2& a1,
 
     // Check if lines are parallel (or nearly parallel)
     if (std::abs(cross) < epsilon) {
-        // Lines are collinear - check if they overlap
+        // Check if lines are collinear by seeing if a0 lies on line B
         const Vec2 r = a0 - b0;
-        const Scalar dot1 = r.dot(dir_b);
-        // const Scalar dot2 = dir_a.dot(dir_b);
+        const Scalar cross_r = r[0] * dir_b[1] - r[1] * dir_b[0];
 
-        // If lines are collinear, return a valid hit with collinear flag
-        return {true, true, Scalar(0), dot1 / dir_b.squaredNorm(), a0};
+        if (std::abs(cross_r) < epsilon) {
+            // Lines are collinear - return hit with collinear flag
+            const Scalar dot1 = r.dot(dir_b);
+            return {true, true, Scalar(0), dot1 / dir_b.squaredNorm(), a0};
+        } else {
+            // Lines are parallel but not collinear - no intersection
+            return {false, false, Scalar(0), Scalar(0), {}};
+        }
     }
 
     // Lines intersect at a single point
